@@ -40,7 +40,7 @@ async login(){ document.body.classList.add('auth');$('#top').hidden=$('#tabs').h
   const us=await (await fetch('/api/users/public')).json(); let sel=null;
   V.innerHTML=`<div class="login"><div class="biglogo" data-svg="/brand/logo_vertical.svg"></div><p class="sub">TEAM TASKS</p>
   <label>Ποιος είσαι;</label><div class="users">${us.map(u=>`<button data-id="${u.id}"><div class="av">${initials(u.name)}</div>${esc(u.name)}</button>`).join('')}</div>
-  <label>PIN</label><input id="pin" class="pin" type="password" inputmode="numeric" maxlength="8" placeholder="••••">
+  <label>PIN</label><input id="pin" class="pin" type="tel" inputmode="numeric" pattern="[0-9]*" autocomplete="off" maxlength="8" placeholder="PIN" style="-webkit-text-security:disc">
   <button class="btn" id="go">Είσοδος</button></div>`;
   V.parentElement.style.padding=0;inlineSvgs();
   V.querySelectorAll('.users button').forEach(b=>b.onclick=()=>{V.querySelectorAll('.users button').forEach(x=>x.classList.remove('on'));b.classList.add('on');sel=+b.dataset.id;$('#pin').focus()});
@@ -113,7 +113,7 @@ async more(){ users=await api('/users');
   V.innerHTML=`<h1>Περισσότερα</h1><div class="card">Συνδεδεμένος ως <b>${esc(me.name)}</b>${me.is_admin?' · Διαχειριστής':''}</div>
   <h2>Ειδοποιήσεις στο κινητό</h2><div class="card" id="pushst" style="font-size:14px"></div>
   <button class="btn gold" id="push">🔔 Ενεργοποίηση ειδοποιήσεων</button><button class="btn ghost" id="ptest">Δοκιμαστική ειδοποίηση</button>
-  <h2>Αλλαγή PIN</h2><input id="np" type="password" inputmode="numeric" placeholder="Νέο PIN (4-8 ψηφία)"><button class="btn ghost" id="cp">Αλλαγή PIN</button>
+  <h2>Αλλαγή PIN</h2><input id="np" type="tel" pattern="[0-9]*" autocomplete="off" style="-webkit-text-security:disc" inputmode="numeric" placeholder="Νέο PIN (4-8 ψηφία)"><button class="btn ghost" id="cp">Αλλαγή PIN</button>
   ${me.is_admin?`<h2>Ομάδα</h2>${users.map(u=>`<div class="card" style="display:flex;justify-content:space-between;align-items:center"><span>${esc(u.name)} ${u.is_admin?'<span class="pill">admin</span>':''}</span>${u.id!==me.id?`<button class="iconbtn" data-del="${u.id}">🗑️</button>`:''}</div>`).join('')}
   <label>Νέο μέλος</label><div class="row"><input id="nn" placeholder="Όνομα"><input id="npin" inputmode="numeric" placeholder="PIN"></div>
   <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="nadm" style="width:auto"> Διαχειριστής</label><button class="btn" id="add">Προσθήκη μέλους</button>`:''}
