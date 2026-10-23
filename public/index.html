@@ -1,0 +1,20 @@
+<!doctype html><html lang="el"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111111"><link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/brand/icon_black.svg" type="image/svg+xml"><link rel="icon" href="/icons/favicon-32.png" sizes="32x32"><link rel="apple-touch-icon" href="/icons/icon-180.png"><meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="AtriX"><title>AtriX Tasks</title>
+<link rel="stylesheet" href="/styles.css"></head><body>
+<header id="top" hidden><span class="hlogo" data-svg="/brand/logo_horizontal_dark.svg"></span><span class="brand"><small>TASKS</small></span>
+<button id="stbtn" class="stchip" aria-label="Η κατάστασή μου"><i class="dot"></i><span id="stlbl">…</span><em id="sttime"></em></button>
+<button id="bell" class="iconbtn" aria-label="Ειδοποιήσεις">🔔<i id="badge" hidden></i></button></header>
+<main id="view"></main>
+<nav id="tabs" hidden>
+<a href="#cal" data-t="cal">📅<span>Ημερολόγιο</span></a><a href="#agenda" data-t="agenda">🗒️<span>Ατζέντα</span></a>
+<a href="#new" class="plus" data-t="new">＋</a>
+<a href="#team" data-t="team">👥<span>Ομάδα</span></a><a href="#mine" data-t="mine">✅<span>Δικά μου</span></a><a href="#more" data-t="more">☰<span>Περισσότερα</span></a></nav>
+<div id="stsheet" class="sheet" hidden><div class="sheetbg"></div><div class="sheetp">
+<div class="grab"></div><h2 style="margin-top:4px">Η κατάστασή μου</h2>
+<input id="stnote" maxlength="120" placeholder="Σημείωση (προαιρετικό), π.χ. πελάτης Σαρόγλου">
+<div class="stgrid" id="stgrid"></div><button class="btn ghost" id="stclose">Κλείσιμο</button></div></div>
+<div id="toast" hidden></div>
+<script src="/app.js"></script></body></html>
