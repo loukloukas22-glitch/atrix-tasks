@@ -40,10 +40,12 @@ async login(){ document.body.classList.add('auth');$('#top').hidden=$('#tabs').h
   const us=await (await fetch('/api/users/public')).json(); let sel=null;
   V.innerHTML=`<div class="login"><div class="biglogo" data-svg="/brand/logo_vertical.svg"></div><p class="sub">TEAM TASKS</p>
   <label>Ποιος είσαι;</label><div class="users">${us.map(u=>`<button data-id="${u.id}"><div class="av">${initials(u.name)}</div>${esc(u.name)}</button>`).join('')}</div>
-  <label>PIN</label><input id="pin" class="pin" type="tel" inputmode="numeric" pattern="[0-9]*" autocomplete="off" maxlength="8" placeholder="PIN" style="-webkit-text-security:disc">
+  <label>PIN</label><input id="pin" class="pin" type="password" readonly maxlength="8" placeholder="PIN">
+  <div class="kp">${[1,2,3,4,5,6,7,8,9,'C',0,'⌫'].map(k=>`<button type="button" data-k="${k}">${k}</button>`).join('')}</div>
   <button class="btn" id="go">Είσοδος</button></div>`;
   V.parentElement.style.padding=0;inlineSvgs();
-  V.querySelectorAll('.users button').forEach(b=>b.onclick=()=>{V.querySelectorAll('.users button').forEach(x=>x.classList.remove('on'));b.classList.add('on');sel=+b.dataset.id;$('#pin').focus()});
+  V.querySelectorAll('.users button').forEach(b=>b.onclick=()=>{V.querySelectorAll('.users button').forEach(x=>x.classList.remove('on'));b.classList.add('on');sel=+b.dataset.id});
+  V.querySelectorAll('.kp button').forEach(b=>b.onclick=()=>{const p=$('#pin'),k=b.dataset.k;if(k==='C')p.value='';else if(k==='⌫')p.value=p.value.slice(0,-1);else if(p.value.length<8)p.value+=k;});
   const go=async()=>{if(!sel)return toast('Διάλεξε το όνομά σου');try{const r=await api('/login',{body:{user_id:sel,pin:$('#pin').value}});token=r.token;me=r.user;localStorage.token=token;localStorage.me=JSON.stringify(me);location.hash='#agenda';}catch(e){toast(e.message)}};
   $('#go').onclick=go;$('#pin').onkeydown=e=>e.key==='Enter'&&go();},
 async cal(){ const y=calMonth.getFullYear(),m=calMonth.getMonth();const first=new Date(y,m,1),start=new Date(y,m,1-((first.getDay()+6)%7));

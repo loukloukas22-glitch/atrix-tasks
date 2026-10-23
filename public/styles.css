@@ -71,3 +71,5 @@ body.auth #top,body.auth #tabs{display:none!important}body.auth{padding-bottom:0
 .bar{display:flex;height:12px;border-radius:6px;overflow:hidden;background:var(--bg);margin:10px 0 8px}.bar i{display:block;height:100%}
 .legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:13px}.legend span{display:inline-flex;align-items:center;gap:5px}.legend b{font-weight:800}
 .sumh{display:flex;justify-content:space-between;align-items:baseline;gap:8px}.sumh small{color:#6d6252;font-size:12px;font-weight:600}
+
+.kp{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}.kp button{padding:14px 0;font-size:22px;font-weight:700;border:1px solid #d3c7ae;border-radius:12px;background:var(--w);color:var(--k)}.kp button:active{background:#eee}
