@@ -88,7 +88,8 @@ async function notify(userId, taskId, text) {
 }
 
 const app = express();
-app.use(express.json());
+const jsonSmall = express.json();
+app.use((req, res, next) => req.path.startsWith('/api/invoices') ? next() : jsonSmall(req, res, next)); // invoices parse their own (large) bodies after auth
 app.use(express.static(path.join(__dirname, 'public'), { setHeaders: (res, p) => { if (p.endsWith('sw.js')) res.set('Cache-Control', 'no-cache'); } }));
 
 const auth = (req, res, next) => {
@@ -111,6 +112,9 @@ app.post('/api/login', (req, res) => {
 });
 app.post('/api/logout', auth, (req, res) => { setStatus(req.user.id, DEFAULT_STATUS); db.prepare('DELETE FROM sessions WHERE token=?').run(req.headers.authorization.slice(7)); res.json({ ok: 1 }); });
 app.get('/api/me', auth, (req, res) => res.json(pubUser(req.user)));
+// Admin: who has logged in (sessions are removed on logout, so this lists currently open sessions)
+app.get('/api/admin/logins', auth, admin, (req, res) => res.json(db.prepare(
+  'SELECT u.id AS user_id, u.name, COUNT(s.token) AS sessions, MAX(s.created) AS last_login_utc FROM users u LEFT JOIN sessions s ON s.user_id=u.id WHERE u.active=1 GROUP BY u.id ORDER BY last_login_utc DESC').all()));
 app.get('/api/users', auth, (req, res) => res.json(db.prepare('SELECT id,name,is_admin FROM users WHERE active=1 ORDER BY name').all()));
 app.post('/api/users', auth, admin, (req, res) => {
   const { name, pin, is_admin } = req.body;
@@ -227,6 +231,7 @@ async function reminders() {
   }
 }
 setInterval(() => reminders().catch(console.error), 60000);
+require('./invoices')(app, { db, DATA_DIR, auth, admin });
 app.get(/^\/(?!api).*/, (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 if (require.main === module) app.listen(PORT, () => console.log('AtriX Tasks στο http://localhost:' + PORT));
-module.exports = { db, hash, localStr, STATUSES, setStatus, athensMidnight };
+module.exports = { app, db, hash, localStr, STATUSES, setStatus, athensMidnight };

@@ -73,3 +73,9 @@ body.auth #top,body.auth #tabs{display:none!important}body.auth{padding-bottom:0
 .sumh{display:flex;justify-content:space-between;align-items:baseline;gap:8px}.sumh small{color:#6d6252;font-size:12px;font-weight:600}
 
 .kp{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}.kp button{padding:14px 0;font-size:22px;font-weight:700;border:1px solid #d3c7ae;border-radius:12px;background:var(--w);color:var(--k)}.kp button:active{background:#eee}
+
+/* Invoices */
+.invbig{font:800 30px Montserrat,Manrope,sans-serif;margin:6px 0}.invtot{margin-top:12px}
+.invtab{width:100%;border-collapse:collapse;margin-top:10px;font-size:14px}.invtab th{text-align:left;color:#6d6252;font-size:12px}.invtab td,.invtab th{padding:4px 0}.invtab td:nth-child(n+2),.invtab th:nth-child(n+2){text-align:right}
+.invfile{text-align:center}.invimg{width:100%;max-height:340px;object-fit:contain;border-radius:10px;background:#000;margin-top:10px}
+.bdr{margin-bottom:6px;align-items:center}.bdr .iconbtn{flex:0 0 36px}
