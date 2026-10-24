@@ -1,4 +1,6 @@
-// Store-wide monthly target (Στόχος Καταστήματος): pieces sold, classified as Fix / GSM / EON TV. Visible to every logged-in user.
+// Store-wide monthly target (Στόχος Καταστήματος): pieces sold for the WHOLE store (no per-person attribution), classified as Fix / GSM / EON TV.
+// Everyone logged in can view it; only admins and members of the shared team group can log, undo or delete entries; target edit/copy stays admin-only.
+const TEAM_GROUP = 'Λουκάς + Δημήτρης';
 const CATS = [['fix', 'Fix'], ['gsm', 'GSM'], ['eon', 'EON TV']];
 const CAT_KEYS = new Set(CATS.map(c => c[0]));
 const DEFAULT_TARGET = 253;
@@ -20,6 +22,8 @@ module.exports = function mount(app, { db, auth, admin, athensToday }) {
   }
   const periodOf = (q) => isPeriod(q) ? q : athensToday().slice(0, 7);
   const targetOf = (p) => (db.prepare('SELECT target FROM store_targets WHERE period=?').get(p) || {}).target ?? null;
+  const canLog = (u) => { if (u.is_admin) return true; const g = db.prepare('SELECT members FROM target_groups WHERE label=?').get(TEAM_GROUP); try { return !!g && JSON.parse(g.members).includes(u.id); } catch (e) { return false; } };
+  const logger = (req, res, next) => canLog(req.user) ? next() : res.status(403).json({ error: 'Μόνο ο διαχειριστής ή η ομάδα Λουκάς + Δημήτρης μπορούν να καταχωρούν' });
   const dimOf = (p) => { const [y, m] = p.split('-').map(Number); return new Date(Date.UTC(y, m, 0)).getUTCDate(); };
 
   app.get('/api/store', auth, (req, res) => {
@@ -33,40 +37,33 @@ module.exports = function mount(app, { db, auth, admin, athensToday }) {
     const perDay = Array(dim + 1).fill(0); for (const r of rows) perDay[Number(r.sale_date.slice(8, 10))] += r.qty;
     let cum = 0; const daily = [];
     for (let d = 1; d <= dim; d++) { if (d <= upto) cum += perDay[d]; daily.push({ day: d, count: perDay[d], cum: d <= upto ? cum : null, pace: target === null ? null : Math.round(target * d / dim * 10) / 10 }); }
-    const users = db.prepare('SELECT id,name FROM users WHERE active=1 ORDER BY name').all(), nm = Object.fromEntries(db.prepare('SELECT id,name FROM users').all().map(u => [u.id, u.name]));
-    const by = {}; for (const r of rows) by[r.user_id] = (by[r.user_id] || 0) + r.qty;
-    const by_person = Object.entries(by).map(([id, count]) => ({ user_id: +id, name: nm[id] || '?', count })).sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, 'el'));
-    const cname = Object.fromEntries(CATS);
-    const recent = rows.slice().reverse().slice(0, 15).map(r => ({ id: r.id, sale_date: r.sale_date, category: r.category, label: cname[r.category] || r.category, qty: r.qty, note: r.note,
-      who: nm[r.user_id] || '?', by: nm[r.created_by] || '?', can_delete: !!req.user.is_admin || r.created_by === req.user.id }));
+    const cname = Object.fromEntries(CATS), can = canLog(req.user);
+    const recent = rows.slice().reverse().slice(0, 15).map(r => ({ id: r.id, sale_date: r.sale_date, category: r.category, label: cname[r.category] || r.category, qty: r.qty, note: r.note, can_delete: can }));
     const periods = [...new Set([...db.prepare('SELECT period FROM store_targets').all().map(r => r.period), cur])].sort();
     res.json({ period, periods, today, current_period: cur, target, total, pct: target ? Math.round(total / target * 100) : 0, remaining, surplus: target === null ? 0 : Math.max(0, total - target), reached: !!target && total >= target, days_in_month: dim, days_left,
-      per_day: remaining > 0 && days_left > 0 ? Math.round(remaining / days_left * 10) / 10 : 0, categories: cats, daily, by_person, recent,
-      is_admin: !!req.user.is_admin, me: req.user.id, users: req.user.is_admin ? users : undefined });
+      per_day: remaining > 0 && days_left > 0 ? Math.round(remaining / days_left * 10) / 10 : 0, categories: cats, daily, recent,
+      is_admin: !!req.user.is_admin, can_log: can });
   });
 
-  // Log pieces. Everyone: for themselves, positive amounts, today. Admin: any person, any date, negative corrections.
-  app.post('/api/store/sales', auth, (req, res) => {
-    const b = req.body || {}, qty = Number(b.qty), isAdm = !!req.user.is_admin;
+  // Log pieces for the whole store. Logger only (admin or team group); any date, negative corrections allowed. A person param from the client is ignored.
+  app.post('/api/store/sales', auth, logger, (req, res) => {
+    const b = req.body || {}, qty = Number(b.qty);
     if (!CAT_KEYS.has(b.category)) return res.status(400).json({ error: 'Διάλεξε κατηγορία: Fix, GSM ή EON TV' });
     if (!Number.isInteger(qty) || qty === 0 || Math.abs(qty) > 1000) return res.status(400).json({ error: 'Δώσε έναν ακέραιο αριθμό κομματιών' });
-    if (qty < 0 && !isAdm) return res.status(403).json({ error: 'Μόνο ο διαχειριστής μπορεί να αφαιρέσει' });
-    let uid = req.user.id, date = athensToday();
-    if (isAdm && b.user_id) { uid = +b.user_id; if (!db.prepare('SELECT 1 FROM users WHERE id=? AND active=1').get(uid)) return res.status(400).json({ error: 'Άγνωστος χρήστης' }); }
-    else if (!isAdm && b.user_id && +b.user_id !== req.user.id) return res.status(403).json({ error: 'Μπορείς να καταχωρείς μόνο τα δικά σου' });
-    if (b.date) { if (!isAdm) return res.status(403).json({ error: 'Μόνο ο διαχειριστής αλλάζει ημερομηνία' }); if (!isDate(b.date)) return res.status(400).json({ error: 'Λάθος ημερομηνία' }); date = b.date; }
-    db.prepare('INSERT INTO store_sales(period,sale_date,category,qty,note,user_id,created_by) VALUES(?,?,?,?,?,?,?)').run(date.slice(0, 7), date, b.category, qty, String(b.note || '').trim().slice(0, 200), uid, req.user.id);
+    let date = athensToday();
+    if (b.date) { if (!isDate(b.date)) return res.status(400).json({ error: 'Λάθος ημερομηνία' }); date = b.date; }
+    // user_id column kept for audit only (who entered it); never taken from the client
+    db.prepare('INSERT INTO store_sales(period,sale_date,category,qty,note,user_id,created_by) VALUES(?,?,?,?,?,?,?)').run(date.slice(0, 7), date, b.category, qty, String(b.note || '').trim().slice(0, 200), req.user.id, req.user.id);
     res.json({ ok: 1, period: date.slice(0, 7) });
   });
-  // Undo the caller's own last entry (admins use DELETE on any entry)
-  app.post('/api/store/undo', auth, (req, res) => {
+  // Undo the caller's own last entry
+  app.post('/api/store/undo', auth, logger, (req, res) => {
     const last = db.prepare('SELECT * FROM store_sales WHERE created_by=? ORDER BY id DESC LIMIT 1').get(req.user.id);
     if (!last) return res.status(404).json({ error: 'Δεν υπάρχει δική σου καταχώρηση για αναίρεση' });
     db.prepare('DELETE FROM store_sales WHERE id=?').run(last.id); res.json({ ok: 1, undone: last.qty, category: last.category });
   });
-  app.delete('/api/store/sales/:id', auth, (req, res) => {
+  app.delete('/api/store/sales/:id', auth, logger, (req, res) => {
     const r = db.prepare('SELECT * FROM store_sales WHERE id=?').get(req.params.id); if (!r) return res.sendStatus(404);
-    if (!req.user.is_admin && r.created_by !== req.user.id) return res.status(403).json({ error: 'Δεν έχεις δικαίωμα' });
     db.prepare('DELETE FROM store_sales WHERE id=?').run(r.id); res.json({ ok: 1 });
   });
   app.put('/api/store/target', auth, admin, (req, res) => {

@@ -24,7 +24,7 @@
 
   views.store = async function () {
     const r = await api('/store' + (period ? '?period=' + period : '')); period = r.period;
-    const ad = r.is_admin, canLog = ad || r.period === r.current_period, hasT = r.target !== null;
+    const ad = r.is_admin, canLog = r.can_log, hasT = r.target !== null;
         const hint = !hasT ? 'Δεν έχει οριστεί στόχος για αυτή την περίοδο' : r.reached ? overText(r) : r.days_left > 0
       ? `Απομένουν <b>${r.days_left}</b> ημέρες - χρειάζονται <b>${f1(r.per_day)}</b> κομμάτια την ημέρα` : `Η περίοδος ολοκληρώθηκε - έλειψαν ${r.remaining} κομμάτια`;
     V.innerHTML = `<h1>Στόχος Καταστήματος</h1>
@@ -35,25 +35,22 @@
     <div class="upd" style="text-align:left;margin-top:8px">${hint}</div>
     ${ad ? '<div class="tbtns tadm"><button class="ghost" id="stt">Αλλαγή στόχου</button><button class="ghost" id="stc">Αντιγραφή στον επόμενο μήνα</button></div>' : ''}</div>
 
-    <h2>Καταχώρηση πώλησης</h2><div class="card" id="slog">
-    ${canLog ? `<label style="margin-top:0">Κατηγορία</label><div class="cats">${r.categories.map(c => `<button data-c="${c.key}" class="${selCat === c.key ? 'on' : ''}" style="--cc:${COL[c.key]}">${esc(c.label)}</button>`).join('')}</div>
-    ${ad ? `<div class="row" style="margin-top:10px"><select id="swho">${r.users.map(u => `<option value="${u.id}" ${u.id === r.me ? 'selected' : ''}>${esc(u.name)}</option>`).join('')}</select><input type="date" id="sdt" value="${period === r.current_period ? r.today : period + '-01'}"></div>` : ''}
+    ${canLog ? `<h2>Καταχώρηση πώλησης</h2><div class="card" id="slog"><label style="margin-top:0">Κατηγορία</label><div class="cats">${r.categories.map(c => `<button data-c="${c.key}" class="${selCat === c.key ? 'on' : ''}" style="--cc:${COL[c.key]}">${esc(c.label)}</button>`).join('')}</div>
+    <div class="row" style="margin-top:10px"><input type="date" id="sdt" value="${period === r.current_period ? r.today : period + '-01'}"></div>
     <div class="tbtns" style="margin-top:10px"><button data-n="1">+1</button><button data-n="5">+5</button><button data-n="10">+10</button><button id="scust">+N</button><button class="ghost" id="sund">Αναίρεση</button></div>
-    <div class="row" id="scw" hidden style="margin-top:8px"><input type="number" inputmode="numeric" id="sn" placeholder="Αριθμός${ad ? ' (αρνητικός για διόρθωση)' : ''}"><button class="btn gold" id="sgo" style="margin-top:0;flex:0 0 130px;padding:12px">Καταχώρηση</button></div>
-    <input id="snote" class="tnote" maxlength="200" placeholder="Σημείωση (προαιρετικό)">`
-      : '<div class="empty" style="padding:6px 0">Η καταχώρηση γίνεται μόνο στον τρέχοντα μήνα</div>'}</div>
+    <div class="row" id="scw" hidden style="margin-top:8px"><input type="number" inputmode="numeric" id="sn" placeholder="Αριθμός (- = διόρθωση)"><button class="btn gold" id="sgo" style="margin-top:0;flex:0 0 130px;padding:12px">Καταχώρηση</button></div>
+    <input id="snote" class="tnote" maxlength="200" placeholder="Σημείωση (προαιρετικό)"></div>` : ''}
 
     <h2>Ανά κατηγορία</h2><div class="card">${hbars(r.categories.map(c => ({ name: c.label, count: c.count, share: c.share, color: COL[c.key] })))}</div>
     <h2>Πρόοδος μήνα</h2><div class="card">${cumChart(r)}<div class="legend" style="margin-top:6px"><span><i class="dot" style="background:#8c6d3f;border-radius:2px"></i>Σωρευτικά κομμάτια</span><span><i class="dot" style="background:#111;border-radius:2px"></i>Ρυθμός στόχου</span>${r.reached ? '<span><i class="dot" style="background:#2e9e5b;border-radius:2px"></i>Πάνω από τον στόχο</span>' : ''}</div></div>
-    <h2>Ανά πωλητή</h2><div class="card">${r.by_person.length ? hbars(r.by_person.map(p => ({ name: p.name + (p.user_id === r.me ? ' (εγώ)' : ''), count: p.count })), '#8c6d3f') : '<div class="empty" style="padding:6px 0">Δεν υπάρχουν καταχωρήσεις</div>'}</div>
     <h2>Τελευταίες καταχωρήσεις</h2>${r.recent.length ? r.recent.map(x => `<div class="card sr"><div class="sumh"><span><i class="dot" style="background:${COL[x.category] || '#999'}"></i> <b>${esc(x.label)}</b> ${x.qty > 0 ? '+' : ''}${x.qty}</span><small>${esc(x.sale_date.slice(8, 10) + '/' + x.sale_date.slice(5, 7))}</small></div>
-      <div class="meta"><span>${esc(x.who)}${x.by !== x.who ? ' (καταχώρηση: ' + esc(x.by) + ')' : ''}</span>${x.note ? `<span>${esc(x.note)}</span>` : ''}</div>${x.can_delete ? `<button class="iconbtn sdel" data-id="${x.id}" style="margin-top:6px;font-size:13px">Διαγραφή</button>` : ''}</div>`).join('') : '<div class="empty">Δεν υπάρχουν καταχωρήσεις</div>'}`;
+      ${x.note ? `<div class="meta"><span>${esc(x.note)}</span></div>` : ''}${x.can_delete ? `<button class="iconbtn sdel" data-id="${x.id}" style="margin-top:6px;font-size:13px">Διαγραφή</button>` : ''}</div>`).join('') : '<div class="empty">Δεν υπάρχουν καταχωρήσεις</div>'}`;
     const reload = () => route(true), fail = (e) => { if (e.message !== 'auth') toast(e.message); };
     $('#sp').onchange = (e) => { period = e.target.value; route(); };
     if (canLog) {
       V.querySelectorAll('.cats button').forEach(b => b.onclick = () => { selCat = b.dataset.c; V.querySelectorAll('.cats button').forEach(x => x.classList.toggle('on', x === b)); });
       const log = async (n) => { if (!selCat) return toast('Διάλεξε πρώτα κατηγορία (Fix, GSM ή EON TV)');
-        const body = { category: selCat, qty: n, note: $('#snote').value, ...(ad ? { user_id: +$('#swho').value, date: $('#sdt').value } : {}) };
+        const body = { category: selCat, qty: n, note: $('#snote').value, date: $('#sdt').value };
         try { await api('/store/sales', { body }); toast((n > 0 ? 'Προστέθηκε +' : 'Διορθώθηκε ') + n + ' ' + r.categories.find(c => c.key === selCat).label); reload(); } catch (e) { fail(e); } };
       V.querySelectorAll('#slog .tbtns [data-n]').forEach(b => b.onclick = () => log(+b.dataset.n));
       $('#scust').onclick = () => { const w = $('#scw'); w.hidden = !w.hidden; if (!w.hidden) $('#sn').focus(); };
