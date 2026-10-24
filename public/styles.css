@@ -101,3 +101,4 @@ nav a span{font-size:9px}
 .tbar.ob b.mk{position:absolute;top:0;bottom:0;width:3px;margin-left:-1.5px;background:#111;box-shadow:0 0 0 1px #fff}
 .tbar.big.ob i.base{border-radius:11px 0 0 11px}.tbar.big.ob i.sur{border-radius:0 11px 11px 0}
 .surtxt{color:#1f7a45}.spct.sover{color:#1f7a45}.pill.ok{margin-right:4px}
+.tbtns.tadm button{white-space:normal;min-width:0;line-height:1.2}
