@@ -88,3 +88,10 @@ body.auth #top,body.auth #tabs{display:none!important}body.auth{padding-bottom:0
 .tnote{margin-top:12px;font-size:14px;padding:9px}
 .tcust[hidden]{display:none}
 .tbtns.tadm{margin-top:6px}.tbtns.tadm button{padding:8px 6px;font-size:12px}.tbtns button{white-space:nowrap}
+
+/* Store target */
+.shero{border-left-color:var(--k);background:#fbf6ea;margin-top:12px}.sof{font-size:18px;font-weight:700;color:#6d6252}.spct{float:right;font-size:22px;color:var(--b)}
+.tbar.big{height:22px;border-radius:11px}.tbar.big i{border-radius:11px}.hb{margin-bottom:10px}.hb:last-child{margin-bottom:0}.hb .tbar{height:12px;margin-top:4px}
+.cats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.cats button{border:2px solid var(--cc);background:var(--w);color:var(--cc);border-radius:12px;padding:14px 4px;font:800 16px Manrope}.cats button.on{background:var(--cc);color:#fff}
+.chart{width:100%;height:auto;display:block}.sr{padding:10px 14px}
+nav a span{font-size:9px}
