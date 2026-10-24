@@ -113,6 +113,7 @@ async notif(){ const n=await api('/notifications');
   await api('/notifications/read',{body:{}});refreshBadge();},
 async more(){ users=await api('/users');
   V.innerHTML=`<h1>Περισσότερα</h1><div class="card">Συνδεδεμένος ως <b>${esc(me.name)}</b>${me.is_admin?' · Διαχειριστής':''}</div>
+  <a class="btn gold" href="#targets" style="text-align:center;text-decoration:none">Στόχοι</a>
   ${me.is_admin?'<a class="btn gold" href="#invoices" style="text-align:center;text-decoration:none">Τιμολόγια αγορών και ΦΠΑ</a>':''}
   <h2>Ειδοποιήσεις στο κινητό</h2><div class="card" id="pushst" style="font-size:14px"></div>
   <button class="btn gold" id="push">🔔 Ενεργοποίηση ειδοποιήσεων</button><button class="btn ghost" id="ptest">Δοκιμαστική ειδοποίηση</button>
@@ -137,7 +138,7 @@ async function enablePush(){try{const reg=await navigator.serviceWorker.ready;co
 async function route(silent){if(silent instanceof Event)silent=false;clearInterval(teamTimer);teamTimer=null;const y=scrollY;const [v,arg]=(location.hash.slice(1)||'agenda').split('/');
   if(!token&&v!=='login'){location.hash='#login';return}
   if(v!=='login'){document.body.classList.remove('auth');$('#top').hidden=$('#tabs').hidden=false;V.parentElement.style.padding='';}
-  document.querySelectorAll('nav a').forEach(a=>a.classList.toggle('on',a.dataset.t===(v==='invoices'||v==='invoice'?'more':v)));
+  document.querySelectorAll('nav a').forEach(a=>a.classList.toggle('on',a.dataset.t===(v==='invoices'||v==='invoice'||v==='targets'?'more':v)));
   try{if(v==='edit')await views.new(arg);else await (views[v]||views.agenda)(arg)}catch(e){if(e.message!=='auth')V.innerHTML=`<div class="empty">${esc(e.message)}</div>`}
   refreshBadge();if(v!=='login')refreshStatus();silent?window.scrollTo(0,y):window.scrollTo(0,0)}
 async function inlineSvgs(){for(const el of document.querySelectorAll('[data-svg]:not([data-done])')){el.dataset.done=1;el.innerHTML=await (await fetch(el.dataset.svg)).text();}}

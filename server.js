@@ -232,6 +232,7 @@ async function reminders() {
 }
 setInterval(() => reminders().catch(console.error), 60000);
 require('./invoices')(app, { db, DATA_DIR, auth, admin });
+require('./targets')(app, { db, auth, admin, athensToday });
 app.get(/^\/(?!api).*/, (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 if (require.main === module) app.listen(PORT, () => console.log('AtriX Tasks στο http://localhost:' + PORT));
 module.exports = { app, db, hash, localStr, STATUSES, setStatus, athensMidnight };

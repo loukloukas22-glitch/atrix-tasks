@@ -79,3 +79,12 @@ body.auth #top,body.auth #tabs{display:none!important}body.auth{padding-bottom:0
 .invtab{width:100%;border-collapse:collapse;margin-top:10px;font-size:14px}.invtab th{text-align:left;color:#6d6252;font-size:12px}.invtab td,.invtab th{padding:4px 0}.invtab td:nth-child(n+2),.invtab th:nth-child(n+2){text-align:right}
 .invfile{text-align:center}.invimg{width:100%;max-height:340px;object-fit:contain;border-radius:10px;background:#000;margin-top:10px}
 .bdr{margin-bottom:6px;align-items:center}.bdr .iconbtn{flex:0 0 36px}
+
+/* Targets */
+.tcard.team{border-left-color:var(--k);background:#fbf6ea}.tm{margin-top:14px}
+.tbar{height:14px;border-radius:7px;background:var(--bg);overflow:hidden;margin-top:6px}.tbar i{display:block;height:100%;background:var(--b);border-radius:7px}.tbar i.ok{background:#2e9e5b}
+.tbtns{display:flex;gap:6px;flex-wrap:wrap}.tbtns button{flex:1 1 0;min-width:46px;border:0;border-radius:10px;padding:11px 6px;font:700 15px Manrope;background:var(--k);color:var(--bg)}
+.tbtns button.ghost{background:transparent;border:1.5px solid #bdb097;color:#5a4d39;font-size:13px}.tcust{margin-top:8px}.tcust .btn{flex:0 0 130px;padding:12px}
+.tnote{margin-top:12px;font-size:14px;padding:9px}
+.tcust[hidden]{display:none}
+.tbtns.tadm{margin-top:6px}.tbtns.tadm button{padding:8px 6px;font-size:12px}.tbtns button{white-space:nowrap}
