@@ -1,17 +1,20 @@
 // Στόχοι πωλητών + καταγραφή προόδου. Loaded after app.js; adds views.targets.
 (function () {
   let period = null;
+  // Progress bar that never caps: fills to the target mark in the normal colour, surplus is a green segment past a target marker. Scale = max(done, target).
+  window.overBar = (done, target, big) => { const sc = Math.max(done, target, 1), tw = Math.min(done, target) / sc * 100, mk = target / sc * 100, over = done > target;
+    return `<div class="tbar ob ${big ? 'big' : ''}"><i class="base" style="width:${tw}%"></i>${over ? `<i class="sur" style="left:${mk}%;width:${(done - target) / sc * 100}%"></i><b class="mk" style="left:${mk}%"></b>` : ''}</div>`; };
+  window.overText = (t) => t.reached ? `<span class="pill ok">Ο στόχος επιτεύχθηκε</span> ${t.surplus > 0 ? `<b class="surtxt">Υπέρβαση +${t.surplus} πάνω από τον στόχο</b>` : 'ακριβώς στον στόχο'}` : null;
   const fm1 = (n) => Number(n).toLocaleString('el-GR', { maximumFractionDigits: 1 });
   const plabel = (p) => { const [y, m] = p.split('-').map(Number); return MON[m - 1] + ' ' + y; };
   const subKey = (s) => s.group ? 'g:' + s.group : 'u:' + s.user;
   const subBody = (k) => k.startsWith('g:') ? { group_label: k.slice(2) } : { user_id: +k.slice(2) };
 
   function metricBlock(t, key, isAdmin) {
-    const pct = Math.min(100, t.pct), done = t.done >= t.target && t.target > 0;
-    const hint = done ? 'Ο στόχος ολοκληρώθηκε' : t.days_left > 0 ? `Χρειάζονται ${fm1(t.per_day)} την ημέρα (απομένουν ${t.remaining})` : `Απομένουν ${t.remaining}`;
+    const hint = t.reached ? overText(t) : t.days_left > 0 ? `Χρειάζονται ${fm1(t.per_day)} την ημέρα (απομένουν ${t.remaining})` : `Απομένουν ${t.remaining}`;
     return `<div class="tm" data-sub="${esc(key)}" data-m="${esc(t.metric)}">
-      <div class="sumh"><b>${esc(t.label)}</b><span><b>${t.done}</b> / ${t.target} (${t.pct}%)</span></div>
-      <div class="tbar"><i class="${done ? 'ok' : ''}" style="width:${pct}%"></i></div>
+      <div class="sumh"><b>${esc(t.label)}</b><span><b>${t.done}</b> / ${t.target} (<b class="${t.reached ? 'surtxt' : ''}">${t.pct}%</b>)</span></div>
+      ${overBar(t.done, t.target)}
       <div class="upd" style="text-align:left;margin:4px 0 8px">${hint}</div>
       <div class="tbtns"><button data-a="add" data-n="1">+1</button><button data-a="add" data-n="5">+5</button><button data-a="add" data-n="10">+10</button><button data-a="custom">+N</button><button data-a="undo" class="ghost">Αναίρεση</button>
 </div>

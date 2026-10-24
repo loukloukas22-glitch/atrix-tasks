@@ -57,7 +57,7 @@ module.exports = function mount(app, { db, auth, admin, athensToday }) {
     ? db.prepare('SELECT COALESCE(SUM(delta),0) s FROM target_progress WHERE period=? AND metric=? AND user_id=? AND group_label IS NULL').get(period, metric, uid)
     : db.prepare('SELECT COALESCE(SUM(delta),0) s FROM target_progress WHERE period=? AND metric=? AND group_label=?').get(period, metric, g)).s;
   const row = (period, t, label) => { const done = doneOf(period, t.metric, t.user_id, t.group_label), rem = Math.max(0, t.target - done);
-    return { id: t.id, metric: t.metric, label: label[t.metric] || t.metric, target: t.target, done, pct: t.target ? Math.round(done / t.target * 100) : 0, remaining: rem, ...pace(period, rem) }; };
+    return { id: t.id, metric: t.metric, label: label[t.metric] || t.metric, target: t.target, done, pct: t.target ? Math.round(done / t.target * 100) : 0, remaining: rem, surplus: Math.max(0, done - t.target), reached: t.target > 0 && done >= t.target, ...pace(period, rem) }; };
 
   app.get('/api/targets', auth, (req, res) => {
     const period = periodOf(req.query.period), ms = metrics(), label = Object.fromEntries(ms.map(m => [m.key, m.label])), order = Object.fromEntries(ms.map((m, i) => [m.key, i]));

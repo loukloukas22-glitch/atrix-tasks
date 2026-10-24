@@ -40,7 +40,7 @@ module.exports = function mount(app, { db, auth, admin, athensToday }) {
     const recent = rows.slice().reverse().slice(0, 15).map(r => ({ id: r.id, sale_date: r.sale_date, category: r.category, label: cname[r.category] || r.category, qty: r.qty, note: r.note,
       who: nm[r.user_id] || '?', by: nm[r.created_by] || '?', can_delete: !!req.user.is_admin || r.created_by === req.user.id }));
     const periods = [...new Set([...db.prepare('SELECT period FROM store_targets').all().map(r => r.period), cur])].sort();
-    res.json({ period, periods, today, current_period: cur, target, total, pct: target ? Math.round(total / target * 100) : 0, remaining, days_in_month: dim, days_left,
+    res.json({ period, periods, today, current_period: cur, target, total, pct: target ? Math.round(total / target * 100) : 0, remaining, surplus: target === null ? 0 : Math.max(0, total - target), reached: !!target && total >= target, days_in_month: dim, days_left,
       per_day: remaining > 0 && days_left > 0 ? Math.round(remaining / days_left * 10) / 10 : 0, categories: cats, daily, by_person, recent,
       is_admin: !!req.user.is_admin, me: req.user.id, users: req.user.is_admin ? users : undefined });
   });
